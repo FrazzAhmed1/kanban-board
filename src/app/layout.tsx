@@ -32,7 +32,6 @@ export default function RootLayout({
           </div>
         </nav>
         <Providers>{children}</Providers>
-        hello
       </body>
     </html>
   );
