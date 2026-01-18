@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSignInEmailPassword } from '@nhost/nextjs'
+import {
+  useSignInEmailPassword,
+  useAuthenticationStatus
+} from '@nhost/nextjs'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-
   const router = useRouter()
+
+  const { isAuthenticated, isLoading: authLoading } =
+    useAuthenticationStatus()
 
   const {
     signInEmailPassword,
@@ -16,22 +19,25 @@ export default function LoginPage() {
     error
   } = useSignInEmailPassword()
 
-  async function loginLogic() {
-    console.log('--- LOGIN ATTEMPT ---')
-    console.log('Email:', email)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-    const result = await signInEmailPassword(email, password)
-
-    console.log('Result:', result)
-    console.log('Hook error:', error)
-
-    if (result?.isSuccess) {
-      console.log('LOGIN SUCCESS → redirecting')
+  useEffect(() => {
+    if (isAuthenticated) {
       router.push('/boards')
-    } else {
-      console.log('LOGIN FAILED')
     }
+  }, [isAuthenticated, router])
+
+ async function loginLogic() {
+  const result = await signInEmailPassword(email, password)
+
+  if (result?.isSuccess || result?.error?.error === 'already-signed-in') {
+    router.push('/boards')
   }
+}
+
+
+  if (authLoading) return <p>Checking auth…</p>
 
   return (
     <div style={{ padding: '2rem', maxWidth: '400px' }}>
@@ -59,7 +65,7 @@ export default function LoginPage() {
 
       {error && (
         <p style={{ color: 'red', marginTop: '1rem' }}>
-          Error: {error.message}
+          {error.message}
         </p>
       )}
     </div>
