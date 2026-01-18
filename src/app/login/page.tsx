@@ -12,7 +12,7 @@ export default function LoginPage() {
 
   const { isAuthenticated, isLoading: authLoading } =
     useAuthenticationStatus()
-
+    new
   const {
     signInEmailPassword,
     isLoading,
