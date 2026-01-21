@@ -1,73 +1,77 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  useSignInEmailPassword,
-  useAuthenticationStatus
-} from '@nhost/nextjs'
+import { useSignInEmailPassword } from '@nhost/nextjs'
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
   const router = useRouter()
 
-  const { isAuthenticated, isLoading: authLoading } =
-    useAuthenticationStatus()
-    new
   const {
     signInEmailPassword,
     isLoading,
     error
   } = useSignInEmailPassword()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  async function loginLogic() {
+    console.log('--- LOGIN ATTEMPT ---')
+    console.log('Email:', email)
 
-  useEffect(() => {
-    if (isAuthenticated) {
+    const result = await signInEmailPassword(email, password)
+
+    console.log('Result:', result)
+    console.log('Hook error:', error)
+
+    if (result?.isSuccess) {
+      console.log('LOGIN SUCCESS → redirecting')
       router.push('/boards')
+    } else {
+      console.log('LOGIN FAILED')
     }
-  }, [isAuthenticated, router])
-
- async function loginLogic() {
-  const result = await signInEmailPassword(email, password)
-
-  if (result?.isSuccess || result?.error?.error === 'already-signed-in') {
-    router.push('/boards')
   }
-}
-
-
-  if (authLoading) return <p>Checking auth…</p>
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '400px' }}>
-      <h1>Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <h1 className="text-2xl font-semibold text-center mb-6">
+          Sign in to Kanban
+        </h1>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ display: 'block', marginBottom: '1rem', width: '100%' }}
-      />
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ display: 'block', marginBottom: '1rem', width: '100%' }}
-      />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
 
-      <button onClick={loginLogic} disabled={isLoading}>
-        {isLoading ? 'Logging in…' : 'Login'}
-      </button>
+          <button
+            onClick={loginLogic}
+            disabled={isLoading}
+            className="w-full rounded-md bg-blue-600 py-2 text-white font-medium hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {isLoading ? 'Logging in…' : 'Login'}
+          </button>
 
-      {error && (
-        <p style={{ color: 'red', marginTop: '1rem' }}>
-          {error.message}
-        </p>
-      )}
+          {error && (
+            <p className="text-sm text-red-600 text-center">
+              {error.message}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
