@@ -16,21 +16,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <nav style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
-            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-              <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                Kanban Board
-              </Link>
-              <Link href="/" style={{ color: '#2563eb', textDecoration: 'none' }}>
-                Home
-              </Link>
-              <Link href="/about" style={{ color: '#2563eb', textDecoration: 'none' }}>
-                About
-              </Link>
-            </div>
-          </div>
-        </nav>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -17,19 +17,14 @@ export default function LoginPage() {
   } = useSignInEmailPassword()
 
   async function loginLogic() {
-    console.log('--- LOGIN ATTEMPT ---')
-    console.log('Email:', email)
-
+    
     const result = await signInEmailPassword(email, password)
 
-    console.log('Result:', result)
-    console.log('Hook error:', error)
-
     if (result?.isSuccess) {
-      console.log('LOGIN SUCCESS → redirecting')
+      
       router.push('/boards')
     } else {
-      console.log('LOGIN FAILED')
+      
     }
   }
 

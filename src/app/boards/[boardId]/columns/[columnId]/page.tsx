@@ -1,15 +1,12 @@
 "use client";
 
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const GET_CARDS = gql`
   query GetCards($columnId: uuid!) {
-    kanbanboard_cards(
-      where: { column_id: { _eq: $columnId } }
-      order_by: { position: asc }
-    ) {
+    kanbanboard_cards(where: { column_id: { _eq: $columnId } }, order_by: { position: asc }) {
       id
       title
     }
@@ -18,9 +15,7 @@ const GET_CARDS = gql`
 
 const INSERT_CARD = gql`
   mutation InsertCard($title: String!, $columnId: uuid!) {
-    insert_kanbanboard_cards(
-      objects: [{ title: $title, column_id: $columnId }]
-    ) {
+    insert_kanbanboard_cards(objects: [{ title: $title, column_id: $columnId }]) {
       affected_rows
     }
   }
@@ -35,7 +30,10 @@ const DELETE_CARD = gql`
 `;
 
 export default function CardsPage() {
-  const { columnId } = useParams<{ columnId: string }>();
+  const params = useParams();
+  const columnId = params?.columnId as string;
+  const boardId = params?.boardId as string;
+  const router = useRouter();
   const [title, setTitle] = useState("");
 
   const { data, loading } = useQuery(GET_CARDS, {
@@ -51,44 +49,71 @@ export default function CardsPage() {
     refetchQueries: [{ query: GET_CARDS, variables: { columnId } }],
   });
 
-  if (loading || !data) return <p className="p-6">Loading…</p>;
+  if (loading || !data) return <p className="p-6 text-white">Loading…</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 max-w-xl mx-auto">
-      <div className="flex gap-3 mb-6">
-        <input
-          className="border rounded-lg px-3 py-2 flex-1"
-          placeholder="New card"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <button
-          className="bg-black text-white px-4 rounded-lg"
-          onClick={() => {
-            if (!title.trim()) return;
-            insertCard({ variables: { title, columnId } });
-            setTitle("");
-          }}
-        >
-          Add
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-10">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => router.push(`/boards/${boardId}`)} className="text-blue-400 hover:text-blue-300">
+            ← Back to Board
+          </button>
+          <h1 className="text-3xl font-bold text-white">Cards</h1>
+        </div>
 
-      <div className="space-y-3">
-        {data.kanbanboard_cards.map((card: any) => (
-          <div
-            key={card.id}
-            className="bg-white rounded-xl shadow p-4 flex justify-between"
-          >
-            <span>{card.title}</span>
+        <div className="bg-gray-800 rounded-xl shadow-2xl p-6 mb-6">
+          <div className="flex gap-3">
+            <input
+              className="border border-gray-600 bg-gray-700 text-white rounded-lg px-4 py-2 flex-1 placeholder-gray-400"
+              placeholder="New card title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && title.trim()) {
+                  insertCard({ variables: { title, columnId } });
+                  setTitle("");
+                }
+              }}
+            />
             <button
-              className="text-red-600 text-sm"
-              onClick={() => deleteCard({ variables: { id: card.id } })}
+              className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
+              onClick={() => {
+                if (!title.trim()) return;
+                insertCard({ variables: { title, columnId } });
+                setTitle("");
+              }}
             >
-              Delete
+              + Add Card
             </button>
           </div>
-        ))}
+        </div>
+
+        <div className="space-y-3">
+          {data.kanbanboard_cards.map((card: any) => (
+            <div
+              key={card.id}
+              className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg p-4 shadow-lg hover:shadow-xl transition"
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-white font-medium">{card.title}</span>
+                <button
+                  className="text-white text-sm opacity-70 hover:opacity-100"
+                  onClick={() => {
+                    if (confirm(`Delete "${card.title}"?`)) {
+                      deleteCard({ variables: { id: card.id } });
+                    }
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {data.kanbanboard_cards.length === 0 && (
+          <p className="text-gray-400 text-center mt-12">No cards yet. Add one above!</p>
+        )}
       </div>
     </div>
   );
