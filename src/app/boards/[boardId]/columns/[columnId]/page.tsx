@@ -3,6 +3,7 @@
 import { gql, useMutation, useSubscription } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { type } from "os";
 
 const CARDS_SUB = gql`
   subscription CardsByColumn($columnId: uuid!) {
