@@ -111,9 +111,7 @@ export default function CardsPage() {
                 <button
                   className="text-white text-sm opacity-70 hover:opacity-100"
                   onClick={() => {
-                    if (confirm(`Delete "${card.title}"?`)) {
                       deleteCard({ variables: { id: card.id } });
-                    }
                   }}
                 >
                   ✕

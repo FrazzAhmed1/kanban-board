@@ -80,6 +80,19 @@ const INSERT_COLUMN = gql`
   }
 `;
 
+const UPDATE_COLUMN = gql`
+  mutation UpdateColumn($id: uuid!, $name: String!) {
+    update_kanbanboard_columns_by_pk(
+      pk_columns: { id: $id }
+      _set: { name: $name }
+    ) {
+      id
+      name
+    }
+  }
+`;
+
+
 const UPDATE_COLUMN_POSITION = gql`
   mutation UpdateColumnPosition($id: uuid!, $position: numeric!, $boardId: uuid!) {
     update_kanbanboard_columns_by_pk(pk_columns: { id: $id }, _set: { position: $position, board_id: $boardId }) {
@@ -105,6 +118,9 @@ export default function BoardsClient() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [newColumnNames, setNewColumnNames] = useState<Record<string, string>>({});
+  const [editColumnId, setEditColumnId] = useState<string | null>(null);
+  const [editColumnName, setEditColumnName] = useState("");
+
 
   const { data, loading, error, refetch, subscribeToMore } = useQuery(BOARDS_WITH_COLUMNS, {
     skip: !isAuthenticated
@@ -161,6 +177,13 @@ export default function BoardsClient() {
       refetch();
     }
   });
+
+  const [updateColumn] = useMutation(UPDATE_COLUMN, {
+  onCompleted: () => {
+    refetch();
+  }
+});
+
 
   const [updateColumnPosition] = useMutation(UPDATE_COLUMN_POSITION, {
     onCompleted: () => {
@@ -323,9 +346,42 @@ export default function BoardsClient() {
                                     onClick={() => router.push(`/boards/${board.id}/columns/${column.id}`)}
                                   >
                                     <div className="flex justify-between items-center">
-                                      <h3 className="font-bold text-white">{column.name}</h3>
-                                      <button className="text-white text-xs opacity-70 hover:opacity-100" onClick={(e) => { e.stopPropagation(); deleteColumn({ variables: { id: column.id } }); }}>✕</button>
-                                    </div>
+                                      {editColumnId === column.id ? (
+        <input
+                 className="bg-transparent border-b border-white text-white text-sm flex-1 outline-none"
+                value={editColumnName}
+                autoFocus
+                onChange={(e) => setEditColumnName(e.target.value)}
+                onKeyDown={(e) => {
+                if (e.key === "Enter" && editColumnName.trim()) {
+                updateColumn({
+                variables: { id: column.id, name: editColumnName }
+                });
+                setEditColumnId(null);
+      }
+              if (e.key === "Escape") {
+              setEditColumnId(null);
+      }
+    }}
+  />
+) : (
+             <div className="flex items-center gap-2">
+             <h3 className="font-bold text-white">{column.name}</h3>
+             <button
+             className="text-white text-xs opacity-70 hover:opacity-100"
+             onClick={(e) => {
+             e.stopPropagation();
+            setEditColumnId(column.id);
+            setEditColumnName(column.name);
+       }}
+    >
+           ✏️
+           </button>
+           </div>
+    )}
+
+                    <button className="text-white text-xs opacity-70 hover:opacity-100" onClick={(e) => { e.stopPropagation(); deleteColumn({ variables: { id: column.id } }); }}>✕</button>
+                          </div>
                                     <p className="text-xs text-white/80 mt-1">Click for cards →</p>
                                   </div>
                                 )}
