@@ -21,10 +21,9 @@ export default function LoginPage() {
     const result = await signInEmailPassword(email, password)
 
     if (result?.isSuccess) {
-      
       router.push('/boards')
     } else {
-      
+      console.error('Login failed:', result?.error)
     }
   }
 
